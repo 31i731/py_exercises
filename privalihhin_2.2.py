@@ -12,20 +12,27 @@ from math import sin, cos, sqrt, atan2, radians
 userData = {}
 
 def userlogin(test=False):
-    try:
-        with urllib.request.urlopen("https://randomuser.me/api/?inc=gender,name,location,nat") as url:
-            data = json.loads(url.read().decode())
-    except:
-        print("Something went wrong while opening url with random user data")
-        return
-    
+    if not test:
+        try:
+            with urllib.request.urlopen("https://randomuser.me/api/?inc=gender,name,location,nat") as url:
+                data = json.loads(url.read().decode()) # loads json from the url
+        except:
+            print("Something went wrong while opening url with random user data")
+            return
+    else:
+        try:
+            with open('userData.json', 'r') as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            print("File 'userData.json' not found")
+            return
+
     global userData
     userData = data['results'][0]
-    #print("User Data: ", userData)    
+    if test: print("User Data: ", userData)    
 
-# define message template and fill with data for the user
-# display using print(...
 def displayMessage():
+    getUserName()["title"] += '.'
     fullName = " ".join(getUserName().values())
     distance = int(getDistance(getUserCoordinates(), getIssCoordinates()))
     msg1 = f"Welcome {fullName}. You are now {distance} km away from ISS."
@@ -112,5 +119,5 @@ def getDistance(userCoord, issCoord):
     distance = R * c
     return distance
     
-userlogin()
+userlogin(test=True)
 displayMessage()
