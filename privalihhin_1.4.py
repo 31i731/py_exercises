@@ -4,14 +4,12 @@ Created on Sun Oct  6 20:46:14 2019
 
 @author: Vassili Privalihhin
 """
-from os import path
 from string import digits
 from collections import Counter
 
 def wordCounter(fileName, length, n):
-    currentScriptDir = path.dirname(path.abspath(__file__))
     try:
-        f = open(currentScriptDir + "\\" + fileName, "r")
+        f = open(fileName, "r")
     except FileNotFoundError:
         print("Sorry could not find", fileName)
         return
@@ -56,4 +54,4 @@ def wordCounter(fileName, length, n):
         for most_common_word in counter.most_common(n):
             print('"{}"'.format(most_common_word[0]), ":", most_common_word[1])
         
-wordCounter("test1.txt", 2, 4)
+wordCounter("test1.txt", 15, 15)
