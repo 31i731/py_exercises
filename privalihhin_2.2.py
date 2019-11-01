@@ -6,6 +6,7 @@ Created on Sun Oct 27 15:24:30 2019
 """
 
 import urllib.request, json
+import sys
 from datetime import datetime, timedelta
 from math import sin, cos, sqrt, atan2, radians
 
@@ -17,18 +18,17 @@ def userlogin(test=False):
             with urllib.request.urlopen("https://randomuser.me/api/?inc=gender,name,location,nat") as url:
                 data = json.loads(url.read().decode()) # loads json from the url
         except:
-            print("Something went wrong while opening url with random user data")
-            return
+            sys.exit("Something went wrong while opening url with random user data")
     else:
         try:
-            with open('userData.json', 'r') as f:
-                data = json.load(f)
-        except FileNotFoundError:
-            print("File 'userData.json' not found")
-            return
+            with urllib.request.urlopen("http://127.0.0.1:84/userData.json") as url:
+                data = json.loads(url.read().decode()) # loads json from the url
+        except:
+            sys.exit("Something went wrong while opening url with local fixed user data")
 
     global userData
     userData = data['results'][0]
+    print(userData)
     if test: print("User Data: ", userData)    
 
 def displayMessage():
@@ -58,55 +58,70 @@ def getUserTimezone():
     return userData.get("location").get("timezone")
 
 def getIssCoordinates(test=False):
-    try:
-        with urllib.request.urlopen("http://api.open-notify.org/iss-now.json") as url:
-            iss = json.loads(url.read().decode())
-            #print("ISS DATA: ", iss)
-    except:
-        print("Something went wrong while opening url with iss current coordinates")
-        return
-
+    if not test:
+        try:
+            with urllib.request.urlopen("http://api.open-notify.org/iss-now.json") as url:
+                iss = json.loads(url.read().decode())
+        except:
+            sys.exit("Something went wrong while opening url with iss current coordinates")
+    else:
+        try:
+            with urllib.request.urlopen("http://127.0.0.1:84/iss-now.json") as url:
+                iss = json.loads(url.read().decode())
+        except:
+            sys.exit("Something went wrong while opening url with local fixed iss current coordinates")
+    
+    print(iss.get("iss_position"))
+    if test: print(iss)
     return iss.get("iss_position")
 
 def getIssPassTime(userCoord, test=False):
-    urlToOpen = "http://api.open-notify.org/iss-pass.json?lat={}&lon={}&n=1".format(userCoord['latitude'], userCoord['longitude'])
+    if not test:
+        urlToOpen = "http://api.open-notify.org/iss-pass.json?lat={}&lon={}&n=1".format(userCoord['latitude'], userCoord['longitude'])
+    else:
+        urlToOpen = "http://127.0.0.1:84/iss-pass.json"
+
     try:
         with urllib.request.urlopen(urlToOpen) as url:
             issPassData = json.loads(url.read().decode())
-    except:
-        print("Something went wrong while opening url with iss pass data")
-        return
+    except urllib.error.HTTPError:
+        sys.exit("Couldn't get ISS Pass Time from the server. The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.")
 
-    #print("iss pass data: ", issPassData)
-    issPassTime = issPassData.get("response")[0].get("risetime")
-    #print("ISS PAST TIME: ", issPassTime)
+    if test: print("iss pass data: ", issPassData)
+    print("iss pass data: ", issPassData)
+
+    try:
+        issPassTime = issPassData.get("response")[0].get("risetime")
+    except IndexError:
+        sys.exit("No response to the request about ISS Pass time")
+
     return issPassTime
-
 
 def convertToDateTime(timestamp):
     dateTime = datetime.fromtimestamp(timestamp)
-    #print(dateTime)
     userOffset = [float(x) for x in getUserTimezone()['offset'].split(":")]
     dateTime = dateTime + timedelta(hours=userOffset[0], minutes=userOffset[1])
-    #print(dateTime)
     dateTime = dateTime.strftime("%b %d, %Y at %H:%M:%S")
     return dateTime
     
 def getPeopleInSpace(test=False):
-    try:
-        with urllib.request.urlopen("http://api.open-notify.org/astros.json") as url:
-            numberOfPeopleInSpace = json.loads(url.read().decode())["number"]
-    except:
-        print("Something went wrong while opening url with data of people in space")
-        return
+    if not test:
+        try:
+            with urllib.request.urlopen("http://api.open-notify.org/astros.json") as url:
+                numberOfPeopleInSpace = json.loads(url.read().decode())["number"]
+        except:
+            sys.exit("Something went wrong while opening url with data of people in space")
+    else:
+        try:
+            with urllib.request.urlopen("http://127.0.0.1:84/astros.json") as url:
+                numberOfPeopleInSpace = json.loads(url.read().decode())["number"]
+        except:
+            sys.exit("Something went wrong while opening url with local fixed data of people in space")
 
-    #print("PEOPLE IN SPACE: ", numberOfPeopleInSpace)
+    if test: print("Number of people in space: ", numberOfPeopleInSpace)
     return numberOfPeopleInSpace
 
 def getDistance(userCoord, issCoord):
-    #print(userCoord)
-    #print(issCoord)
-    
     # approximate radius of earth in km
     R = 6373.0
 
@@ -118,6 +133,6 @@ def getDistance(userCoord, issCoord):
     
     distance = R * c
     return distance
-    
-userlogin(test=True)
+
+userlogin()
 displayMessage()
