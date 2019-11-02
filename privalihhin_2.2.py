@@ -28,7 +28,7 @@ def userlogin(test=False):
 
     global userData
     userData = data['results'][0]
-    print(userData)
+    print("User data: ", userData)
     if test: print("User Data: ", userData)    
 
 def displayMessage():
@@ -37,7 +37,7 @@ def displayMessage():
     distance = int(getDistance(getUserCoordinates(), getIssCoordinates()))
     msg1 = f"Welcome {fullName}. You are now {distance} km away from ISS."
 
-    passTime = convertToDateTime(getIssPassTime(getUserCoordinates()))
+    passTime = convertToDateTime(getIssPassTime(getUserCoordinates()), True)
     msg2 = f"No worries, ISS will pass by your location in {getUserCity()} on {passTime}."
     msg3 = f"Currently, there are {getPeopleInSpace()} people in space."
 
@@ -71,7 +71,7 @@ def getIssCoordinates(test=False):
         except:
             sys.exit("Something went wrong while opening url with local fixed iss current coordinates")
     
-    print(iss.get("iss_position"))
+    print("ISS Position: ", iss.get("iss_position"))
     if test: print(iss)
     return iss.get("iss_position")
 
@@ -97,10 +97,14 @@ def getIssPassTime(userCoord, test=False):
 
     return issPassTime
 
-def convertToDateTime(timestamp):
+def convertToDateTime(timestamp, offset=False):
     dateTime = datetime.fromtimestamp(timestamp)
-    userOffset = [float(x) for x in getUserTimezone()['offset'].split(":")]
-    dateTime = dateTime + timedelta(hours=userOffset[0], minutes=userOffset[1])
+
+    if offset:
+        userOffset = [float(x) for x in getUserTimezone()['offset'].split(":")]
+        if userOffset[0] < 0: userOffset[1] *= -1
+        dateTime = dateTime + timedelta(hours=userOffset[0], minutes=userOffset[1])
+
     dateTime = dateTime.strftime("%b %d, %Y at %H:%M:%S")
     return dateTime
     
