@@ -9,6 +9,8 @@ from re import compile
 initial_balance = "322.43" # if initially there's no balance at all in a file
 balance = 0
 transactions = []
+
+# dictionary with all commands for our programme 
 commands = {
         "transaction": r'^-t +[+-]?((\d+)|(\d+\.\d\d?)) +".+"$', 
         "display": r'^-d +\d+$', 
@@ -19,7 +21,7 @@ def initialize():
     global balance, transactions
             
     balanceFile = open("balance.txt", "a+")
-    balanceFile.seek(0) # go to the beginning
+    balanceFile.seek(0) # go to the beginning of a file
     balance = balanceFile.readline()
     if len(balance) == 0:
         balanceFile.write(initial_balance)
@@ -34,7 +36,7 @@ def initialize():
         return
         
     transactionsFile = open('transactions.txt', 'a+')
-    transactionsFile.seek(0) # go to the beginning
+    transactionsFile.seek(0) # go to the beginning of a file
     transactions = [transaction.strip() for transaction in transactionsFile.readlines()] # read all transactions of the log file, clean them a bit and put them in a list
     transactionsFile.close()
                                             
@@ -48,7 +50,7 @@ def start_transactions():
     global balance
     for k,v in commands.items(): # looping through all dictionary's items, knowing their keys and values
         regex = compile(v) # get regular expression
-        if not regex.match(rawCommand) is None:
+        if not regex.match(rawCommand) is None: # check if our raw command matches pattern of regular expression
             recognised = True
             if k == "quit":
                 print("Bye!")
@@ -79,8 +81,8 @@ def start_transactions():
                 transactionsFile.close()
                 transactions.append(" ".join(transaction))
             else:
-                numberOfTransactions = int(rawCommand.split()[1]) # gets a number in the called command, which means a number of the last transactions
-                # gets a list of transactions from the end until 'numberOfTransactions'*-1
+                numberOfTransactions = int(rawCommand.split()[1]) # gets a required number of transactions to display
+                # gets a list of the last required transactions
                 lastTransactions = transactions[:numberOfTransactions*-1-1:-1]
                 if len(lastTransactions) == 0:
                     print("There are no transactions in the log file.")
