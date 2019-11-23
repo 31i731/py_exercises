@@ -31,7 +31,6 @@ def userlogin(test=False):
     if test: print("User Data: ", userData)    
 
 def displayMessage():
-    getUserName()["title"] += '.'
     fullName = " ".join(getUserName().values())
     distance = int(getDistance(getUserCoordinates(), getIssCoordinates()))
     msg1 = f"Welcome {fullName}. You are now {distance} km away from ISS."
